@@ -1,108 +1,254 @@
 <!DOCTYPE html>
+
 <html>
   
-<head>
-<meta charset="utf-8">
-<meta content="stuff, to, help, search, engines, not" name="keywords">
-<meta content="What this page is about." name="description">
-<meta content="A Whole Lotta' Circles!" name="title">
-<title>A Whole Lotta' Circles!</title>
+    <head>
+
+        <meta charset="utf-8">
+
+        <title>Space Explorer</title>
+
+        <style>
+
+            body {
+                background-color: rgb(0,0,0);
+            }
+
+            #canvas{
+                display:block;
+            }
+
+        </style>
  
-<style>
-    body {
-        margin: 0px;
-        padding: 0px;
-    }
-    #myCanvas {
-        border: 1px #CCC solid;
-    }
-</style>
+    </head>
  
- 
-</head>
- 
-<body>
-    <div id="container">
-        <canvas id="myCanvas" width="500" height="500">
+    <body>
+    
+        <div id="container">
+        
+            <canvas id="canvas"></canvas>
+    
+        </div>
+
+        <script>
+
+        document.documentElement.addEventListener("keydown", KeyPress, false);
+        
+        var mainCanvas = document.getElementById("canvas");
          
-        </canvas>
-    </div>
- 
-    <script>
- 
-        var mainCanvas = document.getElementById("myCanvas");
-        var mainContext = mainCanvas.getContext('2d');
- 
-        var circles = new Array();
-         
+        var stars = new Array();
+
+        var ship;
+                 
         var requestAnimationFrame = window.requestAnimationFrame || 
-                                    window.mozRequestAnimationFrame ||
-                                    window.webkitRequestAnimationFrame ||
-                                    window.msRequestAnimationFrame;
- 
- 
-        function Circle(radius, speed, width, xPos, yPos) {
+            window.mozRequestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.msRequestAnimationFrame;
+
+        var screenWidth = window.innerWidth - 20;
+        var screenHeight = window.innerHeight - 20;
+
+        var mainContext = mainCanvas.getContext('2d');
+
+        var numberOfStars = 5000;
+
+        mainContext.canvas.width  = screenWidth;
+        mainContext.canvas.height = screenHeight;
+
+        var scale = 1;
+         
+        function Star(radius, xPos, yPos, opacity) {
             this.radius = radius;
-            this.speed = speed;
-            this.width = width;
             this.xPos = xPos;
             this.yPos = yPos;
-            this.opacity = .05 + Math.random() * .5;
- 
-            this.counter = 0;
- 
-            var signHelper = Math.floor(Math.random() * 2);
- 
-            if (signHelper == 1) {
-                this.sign = -1;
-            } else {
-                this.sign = 1;
-            }
+            this.opacity = opacity;
         }
- 
-        Circle.prototype.update = function () {
- 
-            this.counter += this.sign * this.speed;
- 
+         
+        Star.prototype.draw = function () {
             mainContext.beginPath();
-             
-            mainContext.arc(this.xPos + Math.cos(this.counter / 100) * this.radius, 
-                            this.yPos + Math.sin(this.counter / 100) * this.radius, 
-                            this.width, 
-                            0, 
-                            Math.PI * 2,
-                            false);
-                             
-            mainContext.closePath();
- 
-            mainContext.fillStyle = 'rgba(185, 211, 238,' + this.opacity + ')';
+            mainContext.arc(this.xPos, this.yPos, this.radius, 0, 2 * Math.PI, false);
+            mainContext.fillStyle = 'rgba(255, 255, 255,' + this.opacity + ')';
             mainContext.fill();
+            mainContext.closePath();
         };
- 
-        function drawCircles() {
-            for (var i = 0; i < 100; i++) {
-                var randomX = Math.round(-200 + Math.random() * 700);
-                var randomY = Math.round(-200 + Math.random() * 700);
-                var speed = .2 + Math.random() * 3;
-                var size = 5 + Math.random() * 100;
- 
-                var circle = new Circle(100, speed, size, randomX, randomY);
-                circles.push(circle);
-            }
-            draw();
+
+        function Ship(radius, xPos, yPos, opacity) {
+            this.radius = radius;
+            this.xPos = xPos;
+            this.yPos = yPos;
+            this.opacity = opacity;
+            this.bearing = 0;
+            this.speed = 0;
         }
-        drawCircles();
- 
-        function draw() {
-            mainContext.clearRect(0, 0, 500, 500);
- 
-            for (var i = 0; i < circles.length; i++) {
-                var myCircle = circles[i];
-                myCircle.update();
+         
+        Ship.prototype.draw = function () {
+
+            if (this.bearing == 0) {
+                this.yPos -= this.speed;
             }
+            else if (this.bearing == 90) {
+                this.xPos += this.speed;
+            }
+            else if (this.bearing == 180) {
+                this.yPos += this.speed;
+            }
+            else if (this.bearing == 270) {
+                this.xPos -= this.speed;
+            }
+
+            mainContext.beginPath();
+            mainContext.arc(this.xPos, this.yPos, this.radius, 0, 2 * Math.PI, false);
+            mainContext.fillStyle = 'rgba(255, 255, 255,' + this.opacity + ')';
+            mainContext.fill();
+            mainContext.closePath();
+        };
+         
+        function createStars() {
+            
+
+            for (var i = 0; i < numberOfStars; i++) {
+                var radius = 1;
+                var randomX = -screenWidth*4 + Math.round(Math.random() * screenWidth*8);
+                var randomY = -screenHeight*4 + Math.round(Math.random() * screenHeight*8);
+                var opacity = Math.random();
+                var star = new Star(radius, randomX, randomY, opacity);
+                stars.push(star);
+            }
+        }
+
+        function createShip() {
+            var radius = 10;
+            var randomX = 0;
+            var randomY = 0;
+            var opacity = 1
+            ship = new Ship(radius, randomX, randomY, opacity);
+        }
+         
+        function draw() {
+            mainContext.clearRect(0, 0, screenWidth, screenHeight);
+            mainContext.save();
+            mainContext.translate(-ship.xPos*scale + screenWidth/2, -ship.yPos*scale + screenHeight/2);
+            mainContext.scale(scale, scale);
+
+            for (var i = 0; i < stars.length; i++) {
+                var star = stars[i];
+                star.draw();
+            }
+
+            ship.draw();
+
+            mainContext.restore();
             requestAnimationFrame(draw);
         }
-    </script>
-</body>
+
+        createShip();
+        createStars();
+        draw();
+
+        function KeyPress(evt) {
+          
+            // LEFT_ARROW
+            if(evt.keyCode == 37) {
+                
+                if (ship.bearing == 270 && ship.speed < 6)
+                {
+                    ship.speed++;
+                }
+                else if (ship.bearing == 270) {
+
+                }
+                else if (ship.bearing == 90)
+                {
+                    ship.speed = 0;
+                }
+                else {
+                    ship.speed = 1;
+                }
+
+                ship.bearing = 270;
+            }
+          
+            // UP_ARROW
+            else if(evt.keyCode==38) {
+
+                if (ship.bearing == 0 && ship.speed < 6)
+                {
+                    ship.speed++;
+                }
+                else if (ship.bearing == 0) {
+                    
+                }
+                else if (ship.bearing == 180)
+                {
+                    ship.speed = 0;
+                }
+                else {
+                    ship.speed = 1;
+                }
+
+                ship.bearing = 0;  
+            }
+          
+            // RIGHT_ARROW
+            else if(evt.keyCode==39) {
+
+                if (ship.bearing == 90 && ship.speed < 6)
+                {
+                    ship.speed++;
+                }
+                else if (ship.bearing == 90) {
+                    
+                }
+                else if (ship.bearing == 270)
+                {
+                    ship.speed = 0;
+                }
+                else {
+                    ship.speed = 1;
+                }
+
+                ship.bearing = 90;
+            }
+          
+            // DOWN_ARROW
+            else if(evt.keyCode==40) {
+
+                if (ship.bearing == 180 && ship.speed < 6)
+                {
+                    ship.speed++;
+                }
+                else if (ship.bearing == 180) {
+                    
+                }
+                else if (ship.bearing == 0)
+                {
+                    ship.speed = 0;
+                }
+                else {
+                    ship.speed = 1;
+                }
+
+                ship.bearing = 180;
+            }
+
+            // n (zoom in)
+            else if(evt.keyCode==78) {
+                if (scale > .125) {
+                    scale = scale*.5;
+                }
+            }
+
+            // m (zoom out)
+            else if(evt.keyCode==77) {
+                if (scale <= 4)
+                {
+                    scale = scale*2;
+                }
+            }
+        }
+
+        </script>
+ 
+    </body>
  
 </html>

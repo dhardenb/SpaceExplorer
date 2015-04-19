@@ -1,0 +1,2 @@
+// A nice example showing how to pan the canvas
+http://jsfiddle.net/RFCJS/
