@@ -37,7 +37,7 @@
         var mainCanvas = document.getElementById("canvas");
          
         var stars = new Array();
-
+        var planets = new Array();
         var ship;
                  
         var requestAnimationFrame = window.requestAnimationFrame || 
@@ -51,6 +51,7 @@
         var mainContext = mainCanvas.getContext('2d');
 
         var numberOfStars = 5000;
+        var numberOfPlanets = 20;
 
         mainContext.canvas.width  = screenWidth;
         mainContext.canvas.height = screenHeight;
@@ -68,6 +69,21 @@
             mainContext.beginPath();
             mainContext.arc(this.xPos, this.yPos, this.radius, 0, 2 * Math.PI, false);
             mainContext.fillStyle = 'rgba(255, 255, 255,' + this.opacity + ')';
+            mainContext.fill();
+            mainContext.closePath();
+        };
+
+        function Planet(radius, xPos, yPos) {
+            this.radius = radius;
+            this.xPos = xPos;
+            this.yPos = yPos;
+            this.fillStyle = 'rgba(' + Math.round(Math.random() * 255) + ',' + Math.round(Math.random() * 255) + ',' + Math.round(Math.random() * 255) + ', 1)';
+        }
+         
+        Planet.prototype.draw = function () {
+            mainContext.beginPath();
+            mainContext.arc(this.xPos, this.yPos, this.radius, 0, 2 * Math.PI, false);
+            mainContext.fillStyle = this.fillStyle;
             mainContext.fill();
             mainContext.closePath();
         };
@@ -105,7 +121,6 @@
          
         function createStars() {
             
-
             for (var i = 0; i < numberOfStars; i++) {
                 var radius = 1;
                 var randomX = -screenWidth*4 + Math.round(Math.random() * screenWidth*8);
@@ -113,6 +128,17 @@
                 var opacity = Math.random();
                 var star = new Star(radius, randomX, randomY, opacity);
                 stars.push(star);
+            }
+        }
+
+        function createPlanets() {
+            
+            for (var i = 0; i < numberOfPlanets; i++) {
+                var radius = 50 + Math.round(Math.random() * 200);
+                var randomX = -screenWidth*4 + Math.round(Math.random() * screenWidth*8);
+                var randomY = -screenHeight*4 + Math.round(Math.random() * screenHeight*8);
+                var planet = new Planet(radius, randomX, randomY);
+                planets.push(planet);
             }
         }
 
@@ -135,6 +161,11 @@
                 star.draw();
             }
 
+            for (var i = 0; i < planets.length; i++) {
+                var planet = planets[i];
+                planet.draw();
+            }
+
             ship.draw();
 
             mainContext.restore();
@@ -143,6 +174,7 @@
 
         createShip();
         createStars();
+        createPlanets();
         draw();
 
         function KeyPress(evt) {
